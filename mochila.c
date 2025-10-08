@@ -20,7 +20,10 @@ typedef struct {
 } Mochila;
 
 // --- Declarações de Funções ---
-void criarItens(Item* lista, int n, int w);
+void criarItens_NaoCorrelacionado(Item* lista, int n, int w);
+void criarItens_CorrelacionadoComRuido(Item* lista, int n, int w);
+void criarItens_FortementeCorrelacionado(Item* lista, int n, int w);
+void lerItens(Item* lista, int n);
 void imprimirItens(Item* lista, int n);
 void guloso(Item *itens, int n, int w);
 void forca_bruta_recursiva(Item* itens, int n, int w, long long valAtual, int pesoAtual, int i, long long* maxVal, long long comb, long long* bestComb);
@@ -32,6 +35,7 @@ int main() {
     int w; // Peso máximo da mochila
     int a; // Seletor de algoritmo
     int s; // Seleciona entrada de itens
+    int t; // Tipo de correlação
 
     printf("Insira o número de itens: ");
     scanf("%d", &n);
@@ -53,17 +57,39 @@ int main() {
     printf("2. Gerar itens aleatórios\n");
     scanf("%d", &s);
 
-    if(s == 2){
-        criarItens(itens, n, w);
-        printf("\n--- Itens Gerados ---\n");
+    if (s == 1){
+        lerItens(itens, n);
+    }else if (s == 2){
+
+        printf("\nSelecione o tipo de geração de itens:\n");
+        printf("1. Pesos e Valores Não Correlacionados\n");
+        printf("2. Pesos e Valores Correlacionados com Ruído\n");
+        printf("3. Pesos e Valores Fortemente Correlacionados\n");
+        scanf("%d", &t);
+
+        // Chama a função de criação apropriada com base na escolha do usuário
+        switch (t) {
+            case 1:
+                criarItens_NaoCorrelacionado(itens, n, w);
+                break;
+            case 2:
+                criarItens_CorrelacionadoComRuido(itens, n, w);
+                break;
+            case 3:
+                criarItens_FortementeCorrelacionado(itens, n, w);
+                break;
+        }
         imprimirItens(itens, n);
     }
+
 
     if(a == 1){
         forca_bruta(itens, n, w);
     }else if(a == 2){
         guloso(itens, n, w); 
     }
+
+    return 0;
 }
 
 void forca_bruta(Item *itens, int n, int w){
@@ -77,15 +103,15 @@ void forca_bruta(Item *itens, int n, int w){
         printf("(Aviso: n > 30, isso pode levar muito tempo...)\n");
     }
 
-    long long maxVal = 0.0;
+    long long maxVal = 0;
     long long bestComb = 0LL;
 
-    forca_bruta_recursiva(itens, n, (double)w, 0.0, 0.0, 0, &maxVal, 0LL, &bestComb);
+    forca_bruta_recursiva(itens, n, (double)w, 0, 0, 0, &maxVal, 0LL, &bestComb);
 
     printf("Itens na melhor combinação:\n");
 
-    int pesoFinal = 0.0;
-    long long valorFinal = 0.0;
+    int pesoFinal = 0;
+    long long valorFinal = 0;
 
     if (bestComb == 0 && maxVal == 0) {
         printf("  - Nenhum item foi selecionado.\n");
@@ -163,24 +189,92 @@ void guloso(Item* itens, int n, int w){
 }
 
 ///////////////// Funções Utilitárias /////////////////
-void criarItens(Item* lista, int n, int w) {
-    int min_peso = 1;               // Um peso mínimo fixo.
-    int max_peso = (int)(w * 0.4);  // O peso máximo será 40% da capacidade da mochila.
+
+void criarItens_NaoCorrelacionado(Item* lista, int n, int w) {
+    int min_peso = 1;
+    int max_peso = (int)(w * 0.4);
 
     for (int i = 0; i < n; i++) {
         lista[i].id = i;
-
         lista[i].peso = (rand() % (max_peso - min_peso + 1)) + min_peso;
         lista[i].valor = (rand() % (MAX_VALOR - MIN_VALOR + 1)) + MIN_VALOR;
-
-        // Calcula a razão (valor/peso).
         if (lista[i].peso > 0) {
             lista[i].razao = (double)lista[i].valor / lista[i].peso;
-        } else {
-            lista[i].razao = 0;
-        }
+        } else lista[i].razao = 0;
     }
 }
+
+void criarItens_CorrelacionadoComRuido(Item* lista, int n, int w) {
+    int min_peso = 1;
+    int max_peso = (int)(w * 0.4);
+    if (max_peso < min_peso) max_peso = min_peso;
+
+    for (int i = 0; i < n; i++) {
+        lista[i].id = i;
+        lista[i].peso = (rand() % (max_peso - min_peso + 1)) + min_peso;
+
+        // O valor base é 2x o peso.
+        int valor_base = lista[i].peso * 2;
+        // O ruído é uma variação de até 50% do valor base (para cima ou para baixo).
+        int faixa_ruido = (int)(valor_base * 0.5);
+        int ruido = 0;
+        if (faixa_ruido > 0) {
+            ruido = (rand() % (2 * faixa_ruido + 1)) - faixa_ruido; // Ruído entre [-faixa, +faixa]
+        }
+        
+        lista[i].valor = valor_base + ruido;
+
+        // Garante que o valor final seja pelo menos 1.
+        if (lista[i].valor < 1) lista[i].valor = 1;
+
+        if (lista[i].peso > 0) lista[i].razao = (double)lista[i].valor / lista[i].peso;
+        else lista[i].razao = 0;
+    }
+}
+
+void criarItens_FortementeCorrelacionado(Item* lista, int n, int w) {
+    int min_peso = 1;
+    int max_peso = (int)(w * 0.4);
+    if (max_peso < min_peso) max_peso = min_peso;
+
+    for (int i = 0; i < n; i++) {
+        lista[i].id = i;
+        lista[i].peso = (rand() % (max_peso - min_peso + 1)) + min_peso;
+
+        // O valor é 2x o peso, mais uma pequena variação aleatória de 0 a 15.
+        int valor_base = lista[i].peso * 2;
+        int ruido_pequeno = rand() % 16; // Ruído pequeno e sempre positivo [0, 15]
+        lista[i].valor = valor_base + ruido_pequeno;
+
+        if (lista[i].peso > 0) lista[i].razao = (double)lista[i].valor / lista[i].peso;
+        else lista[i].razao = 0;
+    }
+}
+
+void lerItens(Item* lista, int n) {
+    printf("\nInsira os itens (peso valor) em cada linha:\n");
+
+    for (int i = 0; i < n; i++) {
+        int peso, valor;
+
+        printf("Item %d -> ", i);
+        if (scanf("%d %d", &peso, &valor) != 2) {
+            printf("Entrada inválida! Tente novamente.\n");
+            i--; // volta uma iteração para repetir a leitura
+            while (getchar() != '\n'); // limpa buffer
+            continue;
+        }
+
+        lista[i].id = i;
+        lista[i].peso = peso;
+        lista[i].valor = valor;
+        lista[i].razao = (peso > 0) ? ((double)valor / peso) : 0.0;
+    }
+
+    printf("\nItens adicionados com sucesso!\n");
+    imprimirItens(lista, n);
+}
+
 
 void imprimirItens(Item* lista, int n) {
     int pesoTotal = 0;
