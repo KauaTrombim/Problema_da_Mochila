@@ -2,26 +2,29 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define MIN_VALOR 10
+#define MAX_VALOR 100
+
 // --- Estruturas de Dados ---
 typedef struct {
     int id;
-    double peso;
-    double valor;
+    int peso;
+    int valor;
     double razao; // valor / peso
 } Item;
 
 typedef struct {
-    double max_w;
-    double valor_total;
-    double peso_total;
+    int max_w;
+    long long valor_total;
+    int peso_total;
 } Mochila;
 
 // --- Declarações de Funções ---
 void criarItens(Item* lista, int n, int w);
 void imprimirItens(Item* lista, int n);
-void guloso(Item *itens, int n, double w);
-void forca_bruta_recursiva(Item* itens, int n, double w, double valAtual, double pesoAtual, int i, double* maxVal, long long comb, long long* bestComb);
-void forca_bruta(Item *itens, int n, double w);
+void guloso(Item *itens, int n, int w);
+void forca_bruta_recursiva(Item* itens, int n, int w, long long valAtual, int pesoAtual, int i, long long* maxVal, long long comb, long long* bestComb);
+void forca_bruta(Item *itens, int n, int w);
 
 // --- Programa Principal ---
 int main() {
@@ -63,44 +66,44 @@ int main() {
     }
 }
 
-void forca_bruta(Item *itens, int n, double w){
+void forca_bruta(Item *itens, int n, int w){
     if (n >= 64) {
     printf("Erro: O número de itens deve ser menor que 64 para a solução de força bruta.\n");
     return;
     }
-    // --- 2. Algoritmo de Força Bruta (CORRIGIDO) ---
+    // --- 2. Algoritmo de Força Bruta ---
     printf("\n--- Executando Solução Força Bruta ---\n");
     if (n > 30) {
         printf("(Aviso: n > 30, isso pode levar muito tempo...)\n");
     }
 
-    double maxVal = 0.0;
+    long long maxVal = 0.0;
     long long bestComb = 0LL;
 
     forca_bruta_recursiva(itens, n, (double)w, 0.0, 0.0, 0, &maxVal, 0LL, &bestComb);
 
     printf("Itens na melhor combinação:\n");
 
-    double pesoFinal = 0.0;
-    double valorFinal = 0.0;
+    int pesoFinal = 0.0;
+    long long valorFinal = 0.0;
 
     if (bestComb == 0 && maxVal == 0) {
         printf("  - Nenhum item foi selecionado.\n");
     } else {
     for (int i = 0; i < n; i++) {
         if ((bestComb >> i) & 1) {
-            printf("Adicionado Item %d (Peso: %.2f, Valor: %.2f)\n", itens[i].id, itens[i].peso, itens[i].valor);
+            printf("Adicionado Item %d (Peso: %d, Valor: %d)\n", itens[i].id, itens[i].peso, itens[i].valor);
                 pesoFinal += itens[i].peso;
                 valorFinal += itens[i].valor;
             }
          }
     }
-        printf("\nResultado Força Bruta -> Valor Final: %.2f | Peso Final: %.2f\n", valorFinal, pesoFinal);
+        printf("\nResultado Força Bruta -> Valor Final: %lld | Peso Final: %d\n", valorFinal, pesoFinal);
 }
 
-void forca_bruta_recursiva(Item* itens, int n, double w,
-                           double valAtual, double pesoAtual, int i,
-                           double* maxVal, long long comb, long long* bestComb)
+void forca_bruta_recursiva(Item* itens, int n, int w,
+                           long long valAtual, int pesoAtual, int i,
+                           long long* maxVal, long long comb, long long* bestComb)
 {
     // --- Caso base: todos os itens foram processados ---
     if (i == n) {
@@ -112,8 +115,7 @@ void forca_bruta_recursiva(Item* itens, int n, double w,
     }
 
     // --- Ignora o item atual ---
-    forca_bruta_recursiva(itens, n, w, valAtual, pesoAtual, i + 1,
-                          maxVal, comb, bestComb);
+    forca_bruta_recursiva(itens, n, w, valAtual, pesoAtual, i + 1, maxVal, comb, bestComb);
 
     // --- Inclui o item atual ---
     double novoPeso = pesoAtual + itens[i].peso;
@@ -121,8 +123,7 @@ void forca_bruta_recursiva(Item* itens, int n, double w,
 
     // Só explora se ainda há chance de ser válido (Árvore com "poda", já que não explora toda a árvore)
     if (novoPeso <= w) {
-        forca_bruta_recursiva(itens, n, w, novoValor, novoPeso, i + 1,
-                              maxVal, comb | (1LL << i), bestComb);
+        forca_bruta_recursiva(itens, n, w, novoValor, novoPeso, i + 1, maxVal, comb | (1LL << i), bestComb);
     }
 }
 
@@ -134,16 +135,12 @@ int compareItens(const void *a, const void *b) {
     Item *itemB = (Item *)b;
 
     // Compara as razões para ordenação decrescente
-    if (itemA->razao < itemB->razao) {
-        return 1;
-    } else if (itemA->razao > itemB->razao) {
-        return -1;
-    } else {
-        return 0; // São iguais
-    }
+    if (itemA->razao < itemB->razao) return 1;
+    if (itemA->razao > itemB->razao) return -1;
+    return 0; // São iguais
 }
 
-void guloso(Item* itens, int n, double w){
+void guloso(Item* itens, int n, int w){
     qsort(itens, n, sizeof(Item), compareItens);
   
     Mochila mochilaGuloso = { .max_w = w, .valor_total = 0, .peso_total = 0 };
@@ -157,24 +154,31 @@ void guloso(Item* itens, int n, double w){
             mochilaGuloso.valor_total += itens[i].valor;
             
             // imprime o item que foi adicionado
-            printf("Adicionado item %d (Peso: %.2f, Valor: %.2f, Razão: %.2f)\n", itens[i].id, itens[i].peso, itens[i].valor, itens[i].razao);
+            printf("Adicionado item %d (Peso: %d, Valor: %d, Razão: %.2f)\n", itens[i].id, itens[i].peso, itens[i].valor, itens[i].razao);
         }
     }
 
     // Imprime o resultado final
-    printf("\nResultado Guloso -> Valor Final: %.2f | Peso Final: %.2f\n", mochilaGuloso.valor_total, mochilaGuloso.peso_total);
+    printf("\nResultado Guloso -> Valor Final: %lld | Peso Final: %d\n", mochilaGuloso.valor_total, mochilaGuloso.peso_total);
 }
 
 ///////////////// Funções Utilitárias /////////////////
 void criarItens(Item* lista, int n, int w) {
+    int min_peso = 1;               // Um peso mínimo fixo.
+    int max_peso = (int)(w * 0.4);  // O peso máximo será 40% da capacidade da mochila.
+
     for (int i = 0; i < n; i++) {
-        double min_w = (double)w / (n + 5.0);
-        double delta = ((double)rand() / RAND_MAX) * (2.5 * min_w);
         lista[i].id = i;
-        lista[i].peso = min_w + delta;
-        if (lista[i].peso < 0.1) lista[i].peso = 0.1; // Evitar peso zero
-        lista[i].valor = lista[i].peso * (((double)rand() / RAND_MAX) * 4.0 + 0.5);
-        lista[i].razao = lista[i].valor / lista[i].peso;
+
+        lista[i].peso = (rand() % (max_peso - min_peso + 1)) + min_peso;
+        lista[i].valor = (rand() % (MAX_VALOR - MIN_VALOR + 1)) + MIN_VALOR;
+
+        // Calcula a razão (valor/peso).
+        if (lista[i].peso > 0) {
+            lista[i].razao = (double)lista[i].valor / lista[i].peso;
+        } else {
+            lista[i].razao = 0;
+        }
     }
 }
 
@@ -182,7 +186,7 @@ void imprimirItens(Item* lista, int n) {
     int pesoTotal = 0;
     for (int i = 0; i < n; i++) {
         pesoTotal += lista[i].peso;
-        printf("Item %d -> Peso: %.2f | Valor: %.2f | Razão: %.2f\n", i, lista[i].peso, lista[i].valor, lista[i].razao);
+        printf("Item %d -> Peso: %d | Valor: %d | Razão: %.2f\n", i, lista[i].peso, lista[i].valor, lista[i].razao);
     }
     printf("Peso total dos itens: %d\n", pesoTotal);
 }
