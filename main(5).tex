@@ -1,0 +1,179 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath, amsfonts, amssymb, bm, indentfirst, natbib}
+% --- Pacotes necessários ---
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{forest}
+
+% --- Definição das cores baseadas no tema VS Code (Dark+) ---
+\definecolor{vscodeBackground}{HTML}{1E1E1E}
+\definecolor{vscodeForeground}{HTML}{D4D4D4}
+\definecolor{vscodeKeyword}{HTML}{569CD6}
+\definecolor{vscodeString}{HTML}{CE9178}
+\definecolor{vscodeComment}{HTML}{6A9955}
+\definecolor{vscodeNumber}{HTML}{B5CEA8}
+\definecolor{vscodeType}{HTML}{4EC9B0}
+\definecolor{vscodeFunction}{HTML}{DCDCAA}
+\definecolor{vscodePreprocessor}{HTML}{C586C0}
+
+% --- Estilo customizado ---
+\lstdefinestyle{vscodeC}{
+    language=C,
+    backgroundcolor=\color{vscodeBackground},
+    basicstyle=\ttfamily\small\color{vscodeForeground},
+    keywordstyle=\color{vscodeKeyword}\bfseries,
+    stringstyle=\color{vscodeString},
+    commentstyle=\color{vscodeComment}\itshape,
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    stepnumber=1,
+    numbersep=10pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!40},
+    tabsize=4,
+    captionpos=b,
+    morekeywords={bool,true,false,NULL,size_t}, % adicionais em C
+    emph={printf,scanf,main,exit,malloc,free,strlen,strcmp}, 
+    emphstyle=\color{vscodeFunction},
+    keywordstyle=[2]\color{vscodeType},
+    aboveskip=10pt,
+    belowskip=10pt,
+}
+
+% --- Comando prático para inserir códigos C ---
+\newcommand{\csource}[2][]{%
+  \lstinputlisting[style=vscodeC,caption={#1}]{#2}
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+
+
+    
+    {\large \emph {Universidade de São Paulo}}\\
+    {\large \emph {Instituto de Ciências Matemáticas e de Computação}}\\[1cm]
+    \vfill 
+    
+    {\huge {Problema da Mochila 0/1}}\\[1cm]
+    {\large \textit{Introdução a Ciência da Computação 2}}\\
+    
+    \vfill
+
+    \begin{flushright}
+        Discentes: Cleyton José Rodrigues Macedo\\
+        Kauã Benjamin trombin Silva\\[3mm]
+        
+        Docente: Marcelo Garcia Manzato\\
+    \end{flushright}
+    \vfill   
+    São Carlos\\
+    Outubro de 2025\\
+
+    \pagebreak
+    
+\end{titlepage}
+
+\section{Introdução}
+
+\indent O Problema da Mochila 0/1 é uma versão clássica de otimização combinatória onde, dado um conjunto de $n$ itens com pesos e valores distintos, deve-se escolher um subconjunto de itens cuja soma dos valores seja máxima, sem que a soma dos pesos exceda a capacidade $W$ da mochila. A restrição "0/1" implica que cada item deve ser inteiramente incluído ou totalmente descartado.\\
+
+\indent Este relatório apresenta uma análise teórica de três abordagens para a solução deste problema:
+
+\begin{itemize}
+    \item \textbf{Força Bruta:} Uma busca exaustiva que garante a otimalidade.
+    \item \textbf{Algoritmo Guloso:} Uma versão rápida que busca uma solução aproximada.
+    \item \textbf{Programação Dinâmica:} Uma abordagem ótima e mais eficiente que a força bruta.
+\end{itemize}
+
+\section{Abordagem por Força Bruta}
+
+\subsection{Descrição Teórica}
+
+\indent A abordagem de força bruta resolve o problema da forma mais direta possível: gerando e avaliando todos os subconjuntos de itens possíveis. Para um conjunto de $n$ itens, existem $2^n$ combinações. O algoritmo verifica cada combinação, calcula seu peso e valor totais e mantém o registro daquela que oferece o maior valor sem exceder capacidade $W$.
+
+\subsection{Análise da Implementação}
+
+finge que tem o codigo aqui
+
+\indent A função recursiva busca a melhor solução da seguinte forma:
+
+\begin{itemize}
+    \item \textbf{Lógica:} Para cada item, a função explora duas ramificações: uma onde o item é incluído na mochila e outra onde ele não é. Isso cria uma árvore de recursão de profundidade $n$, cujas folhas representam todas as $2^n$ combinações.
+    
+    \item \textbf{Rastreamento de Subconjuntos:} A implementação utiliza um long long comb como uma máscara de bits (bitmask). Cada bit na variável representa um item. Se o $i$-ésimo bit está ativo (1), significa que o item $i$ está na combinação atual. Esta é uma forma eficiente de representar e passar os subconjuntos através das chamadas recursivas.
+    
+    \item \textbf{Limitação:} A utilização de long long para a máscara de bits impõe uma limitação de $n \lt 64$ itens, o que é explicitamente verificado no código, porém, na prática, isso não é um problema já que 64 itens é um número inviavelmente grande para a força bruta.
+\end{itemize}
+
+\subsection{Análise de Complexidade}
+
+\indent 
+
+\begin{itemize}
+    \item \textbf{Complexidade de Tempo:} $O(n^2)$\\
+    A árvore de recursão possui 2n nós folha, e o trabalho em cada nó é constante. Portanto, o tempo de execução cresce exponencialmente com o número de itens, tornando-o inviável para valores de n relativamente grandes.
+
+    \item \textbf{Complexidade de Espaço:} $O(n)$\\
+    O espaço é dominado pela profundidade da pilha de recursão, que no pior caso será igual ao número de itens, n.
+    
+\end{itemize}
+
+\subsection{Garantia de Otimização}
+
+\indent Esta abordagem é garantidamente ótima, pois ao avaliar todas as possibilidades, é impossível não encontrar a melhor solução.
+
+\section{Abordagem Gulosa}
+
+\subsection{Descrição Teórica}
+
+\indent O algoritmo guloso não busca a solução ótima, mas sim uma solução "boa o suficiente" de forma muito rápida. Ele constrói a solução passo a passo, fazendo a escolha localmente ótima em cada etapa. A heurística padrão para o Problema da Mochila é baseada na razão valor/peso.
+
+\indent O algoritmo segue os seguintes passos:
+
+\begin{itemize}
+    \item 1. Calcular a razão valor/peso para cada item.
+    \item 2. Oredenar os itens em ordem decrescente com base nessa razão.
+    \item 3. Percorrer a lista ordenada, adicionando cada item à mochila se e ele couber na capacidade restante.
+\end{itemize}
+
+\subsection{Análise da Implementação}
+
+\indent A implementação em guloso$\_$alg ssegue essa estrutura geral de ordenar e depois preencher a mochila.
+
+\begin{itemize}
+
+    \item \textbf{Ordenação:} A função utiliza um $heap_sort$ para ordenar os itens. Este passo é o mais custoso do algoritmo.
+
+    \item \textbf{Preenchimento} Após a ordenação, um laço for percorre a lista de itens e os adiciona à mochila se houver capacidade.
+
+\end{itemize}
+
+\subsection{Análise de Complexidade}
+
+\begin{itemize}
+
+    \item \textbf{Complexidade de Tempo:} $O(n \log n)$\\
+    A complexidade é dominada pela etapa de ordenação dos itens. O $heap_sort$, assim como outros algoritmos eficientes (Quick Sort, Merge Sort), tem essa complexidade de tempo no caso médio e pior.
+
+    \item \textbf{Complexidade de Espaço:} $O(n)$
+    É necessário espaço para armazenar os ponteiros dos itens para a ordenação, resultando em complexidade de espaço linear.
+    
+\end{itemize}
+
+\subsection{Garantia de Otimização}
+
+\indent Esta abordagem não garante a solução ótima para o Problema da Mochila 0/1. Uma escolha localmente ótima (pegar o item com a melhor razão) pode impedir a escolha de uma combinação de outros itens que resultaria em um valor final maior. Exemplo clássico:\\
+
+Itens com (peso, valor): A = (30, 90), B = (20, 80) e C = (35, 150), e mochila com capacidade 50.\\
+
+A solução gulosa escolheria o item c por ter a maior razâo, e nâo teria espaço para mais nenhum item, terminado com valor 150, porém, a solução otima com A e B possui valor 170.
+
+
+\end{document}
