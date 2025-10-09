@@ -101,7 +101,27 @@ void heap_sort(item** array, int size){
 
 //////////////// Programação Dinâmica /////////////////
 
-void prog_dinamica(item *itens[], ){
+void prog_dinamica(item *itens[], int n, mochila* m, ){
+    if(itens == NULL || m == NULL) return;
+    
+    //Criar tabela
+    int **tabela;
+    int colunas = m->w;
+    tabela = (int **) calloc(m->w, sizeof(int *));
+    if (tabela == NULL)return;
+
+    for (int i = 0; i < n; i++) {
+        tabela[i] = (int *) calloc(n, sizeof(int));
+        if (tabela[i] == NULL) {
+            printf("Erro na alocação da tabela\n");
+            free(tabela);
+            return;
+        }
+    }
+
+    for(int i = 0; i < w)
+
+
 
 
 }
