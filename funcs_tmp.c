@@ -98,3 +98,10 @@ void heap_sort(item** array, int size){
         heapify(array, 0, size - 1 - i);
     }
 }
+
+//////////////// Programação Dinâmica /////////////////
+
+void prog_dinamica(item *itens[], ){
+
+
+}
