@@ -5,7 +5,7 @@
 
 typedef struct{
     int id;
-    double peso; // para usarmos MOD (%) precisamos de inteiros, isso nos leva a usar o peso em g e não em Kg
+    int peso;
     int valor;
     double razao;
 } item;
@@ -16,6 +16,8 @@ typedef struct{
 
 } Mochila;
 
+
+//O(n)
 void criarItens(item *lista, int n, int w){
     for(int i = 0; i < n; i++){
         item aux;
@@ -33,20 +35,16 @@ void criarItens(item *lista, int n, int w){
     }
 }
 
+//O(n)
 void imprimirItens(item *lista, int n){
     int pesoTotal = 0;
     for(int i = 0; i < n; i++){
         pesoTotal += lista[i].peso;
-        printf("%d Peso: %.2lf\n", i, lista[i].peso);
+        printf("%d Peso: %d\n", i, lista[i].peso);
         printf("%d Valor: %d\n", i, lista[i].valor);
     }
     printf("Peso total dos itens: %d\n", pesoTotal);
 }
-
-void forcaBruta(item *lista, Mochila *mochila){
-    
-}
-
 
 int main(){
     int n;
@@ -63,8 +61,9 @@ int main(){
     imprimirItens(itens, n);
 
     Mochila *mochila = (Mochila *) malloc(sizeof(mochila));
+    item *lista = NULL;
     mochila->maxW = w;
-    
+    mochila->itens_guardados = lista;
 
     return 0;
 }
