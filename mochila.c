@@ -21,263 +21,6 @@ typedef struct {
 } Mochila;
 
 
-//O(n)
-void criarItens(Item *lista, int n, int w){
-    for(int i = 0; i < n; i++){
-        Item aux;
-    }
-}
-// --- Declarações de Funções ---
-void criarItens_NaoCorrelacionado(Item* lista, int n, int w);
-void criarItens_CorrelacionadoComRuido(Item* lista, int n, int w);
-void criarItens_FortementeCorrelacionado(Item* lista, int n, int w);
-void lerItens(Item* lista, int n);
-void imprimirItens(Item* lista, int n);
-void guloso(Item *itens, int n, int w);
-void forca_bruta_recursiva(Item* itens, int n, int w, long long valAtual, int pesoAtual, int i, long long* maxVal, long long comb, long long* bestComb);
-void forca_bruta(Item *itens, int n, int w);
-void prog_dinamica(Item *itens, int n, int w);
-
-// // --- Programa Principal ---
-// int main() {
-//     int n; // Número de itens
-//     int w; // Peso máximo da mochila
-//     int a; // Seletor de algoritmo
-//     int s; // Seleciona entrada de itens
-//     int t; // Tipo de correlação
-
-//O(n)
-int main(){ 
-    int a; // Seletor de algoritmo
-    int s; // Seleciona entrada de itens
-    int t; // Tipo de correlação
-    int n; // Número de itens
-    int w; // Peso máximo da mochila
-    printf("Insira o número de itens: ");
-    scanf("%d", &n);
-
-    printf("Insira o peso máximo da mochila: ");
-    scanf("%d", &w);
-
-    Mochila *mochila = (Mochila *) malloc(sizeof(Mochila));
-    Item *lista = NULL;
-    mochila->max_w = w;
-    mochila->itens_guardados = lista;
-    printf("Selecione o algorítmo: \n");
-    printf("1. Força Bruta \n");
-    printf("2. Guloso\n");
-    printf("3. Programação Dinâmica\n");
-    scanf("%d", &a);
-
-    Item itens[n];
-    srand(10);
-
-    printf("Adicionar itens ou gerar aleatórios?\n");
-    printf("1. Adicionar itens manualmente\n");
-    printf("2. Gerar itens aleatórios\n");
-    scanf("%d", &s);
-
-    if (s == 1){
-        lerItens(itens, n);
-    }else if (s == 2){
-
-        printf("\nSelecione o tipo de geração de itens:\n");
-        printf("1. Pesos e Valores Não Correlacionados\n");
-        printf("2. Pesos e Valores Correlacionados com Ruído\n");
-        printf("3. Pesos e Valores Fortemente Correlacionados\n");
-        scanf("%d", &t);
-
-        // Chama a função de criação apropriada com base na escolha do usuário
-        switch (t) {
-            case 1:
-                criarItens_NaoCorrelacionado(itens, n, w);
-                break;
-            case 2:
-                criarItens_CorrelacionadoComRuido(itens, n, w);
-                break;
-            case 3:
-                criarItens_FortementeCorrelacionado(itens, n, w);
-                break;
-        }
-        imprimirItens(itens, n);
-    }
-
-
-    if(a == 1){
-        forca_bruta(itens, n, w);
-    }else if(a == 2){
-        guloso(itens, n, w); 
-    }
-    else{
-        prog_dinamica(itens, n, w); 
-    }
-
-    return 0;
-}
-
-void forca_bruta(Item *itens, int n, int w){
-    if (n >= 64) {
-    printf("Erro: O número de itens deve ser menor que 64 para a solução de força bruta.\n");
-    return;
-    }
-    // --- 2. Algoritmo de Força Bruta ---
-    printf("\n--- Executando Solução Força Bruta ---\n");
-    if (n > 30) {
-        printf("(Aviso: n > 30, isso pode levar muito tempo...)\n");
-    }
-
-    long long maxVal = 0;
-    long long bestComb = 0LL;
-
-    forca_bruta_recursiva(itens, n, (double)w, 0, 0, 0, &maxVal, 0LL, &bestComb);
-
-    printf("Itens na melhor combinação:\n");
-
-    int pesoFinal = 0;
-    long long valorFinal = 0;
-
-    if (bestComb == 0 && maxVal == 0) {
-        printf("  - Nenhum item foi selecionado.\n");
-    } else {
-    for (int i = 0; i < n; i++) {
-        if ((bestComb >> i) & 1) {
-            printf("Adicionado Item %d (Peso: %d, Valor: %d)\n", itens[i].id, itens[i].peso, itens[i].valor);
-                pesoFinal += itens[i].peso;
-                valorFinal += itens[i].valor;
-            }
-         }
-    }
-        printf("\nResultado Força Bruta -> Valor Final: %lld | Peso Final: %d\n", valorFinal, pesoFinal);
-}
-
-void forca_bruta_recursiva(Item* itens, int n, int w,
-                           long long valAtual, int pesoAtual, int i,
-                           long long* maxVal, long long comb, long long* bestComb)
-{
-    // --- Caso base: todos os itens foram processados ---
-    if (i == n) {
-        if (pesoAtual <= w && valAtual > *maxVal) {
-            *maxVal = valAtual;
-            *bestComb = comb;
-        }
-        return;
-    }
-
-    // --- Ignora o item atual ---
-    forca_bruta_recursiva(itens, n, w, valAtual, pesoAtual, i + 1, maxVal, comb, bestComb);
-
-    // --- Inclui o item atual ---
-    double novoPeso = pesoAtual + itens[i].peso;
-    double novoValor = valAtual + itens[i].valor;
-
-    // Só explora se ainda há chance de ser válido (Árvore com "poda", já que não explora toda a árvore)
-    if (novoPeso <= w) {
-        forca_bruta_recursiva(itens, n, w, novoValor, novoPeso, i + 1, maxVal, comb | (1LL << i), bestComb);
-    }
-}
-
-// --- Função de comparação para qsort ---
-// --- Ordena os itens em ordem decrescente com base na sua razão (valor/peso) ---
-int compareItens(const void *a, const void *b) {
-    // Converte os ponteiros void* para ponteiros do tipo Item*
-    Item *itemA = (Item *)a;
-    Item *itemB = (Item *)b;
-
-    // Compara as razões para ordenação decrescente
-    if (itemA->razao < itemB->razao) return 1;
-    if (itemA->razao > itemB->razao) return -1;
-    return 0; // São iguais
-}
-
-void guloso(Item* itens, int n, int w){
-    qsort(itens, n, sizeof(Item), compareItens);
-  
-    Mochila mochilaGuloso = { .max_w = w, .valor_total = 0, .peso_total = 0 };
-
-    printf("\n--- Executando Solução Gulosa ---\n");
-
-    // Itera sobre os itens já ordenados e preenche a mochila
-    for (int i = 0; i < n; i++) {
-        if (mochilaGuloso.peso_total + itens[i].peso <= mochilaGuloso.max_w) {
-            mochilaGuloso.peso_total += itens[i].peso;
-            mochilaGuloso.valor_total += itens[i].valor;
-            
-            // imprime o item que foi adicionado
-            printf("Adicionado item %d (Peso: %d, Valor: %d, Razão: %.2f)\n", itens[i].id, itens[i].peso, itens[i].valor, itens[i].razao);
-        }
-    }
-
-    // Imprime o resultado final
-    printf("\nResultado Guloso -> Valor Final: %lld | Peso Final: %d\n", mochilaGuloso.valor_total, mochilaGuloso.peso_total);
-}
-
-int max(int a, int b) {
-    return (a > b) ? a : b;
-}
-
-void prog_dinamica(Item *itens, int n, int w) {
-    if (itens == NULL || n <= 0 || w <= 0) {
-        printf("Entrada inválida.\n");
-        return;
-    }
-
-    int **tabela = (int **) calloc(n + 1, sizeof(int *));
-    if (tabela == NULL) {
-        printf("Erro de alocação\n");
-        return;
-    }
-
-    for (int i = 0; i <= n; i++) {
-        tabela[i] = (int *) calloc(w + 1, sizeof(int));
-        if (tabela[i] == NULL) {
-            printf("Erro de alocação\n");
-            for(int k=0; k < i; k++) free(tabela[k]);
-            free(tabela);
-            return;
-        }
-    }
-
-    for (int i = 1; i <= n; i++) {
-        for (int j = 1; j <= w; j++) {
-            int pesoAtual = itens[i-1].peso;
-            int valorAtual = itens[i-1].valor;
-            int valorAnterior = tabela[i-1][j];
-
-            //Se o item não cabe
-            if (pesoAtual > j) {
-                tabela[i][j] = valorAnterior;
-            } else {
-                //O novo valor é a soma do item atual com a melhor possibilidade de resto
-                int novoValor = valorAtual + tabela[i-1][j - pesoAtual];
-                tabela[i][j] = max(valorAnterior, novoValor); //Escolhe o maior
-            }
-        }
-    }
-
-    int melhor = tabela[n][w];
-    printf("Valor final: %d\n", melhor);
-    
-    int peso_final = 0;
-    int espacoVago = w;
-    int qtdItens = 0;
-    for (int i = n; i > 0 && espacoVago > 0; i--) {
-        if (tabela[i][espacoVago] != tabela[i-1][espacoVago]) {
-            Item itemAtual = itens[i-1];
-            printf("- Item %d (Peso: %d, Valor: %d)\n", itemAtual.id, itemAtual.peso, itemAtual.valor);
-            espacoVago -= itemAtual.peso;
-            peso_final += itemAtual.peso;
-            qtdItens++;
-        }
-    }
-    printf("Peso final: %d\n", peso_final);
-    printf("Itens inseridos: %d\n", qtdItens);
-    for (int i = 0; i <= n; i++) {
-        free(tabela[i]);
-    }
-    free(tabela);
-}
-
-
 
 ///////////////// Funções Utilitárias /////////////////
 
@@ -339,6 +82,14 @@ void criarItens_FortementeCorrelacionado(Item* lista, int n, int w) {
         else lista[i].razao = 0;
     }
 }
+void imprimirItens(Item* lista, int n) {
+    int pesoTotal = 0;
+    for (int i = 0; i < n; i++) {
+        pesoTotal += lista[i].peso;
+        printf("Item %d -> Peso: %d | Valor: %d | Razão: %.2f\n", i, lista[i].peso, lista[i].valor, lista[i].razao);
+    }
+    printf("Peso total dos itens criados: %d\n\n", pesoTotal);
+}
 void lerItens(Item* lista, int n) {
     printf("\nInsira os itens (peso valor) em cada linha:\n");
 
@@ -362,11 +113,248 @@ void lerItens(Item* lista, int n) {
     printf("\nItens adicionados com sucesso!\n");
     imprimirItens(lista, n);
 }
-void imprimirItens(Item* lista, int n) {
-    int pesoTotal = 0;
-    for (int i = 0; i < n; i++) {
-        pesoTotal += lista[i].peso;
-        printf("Item %d -> Peso: %d | Valor: %d | Razão: %.2f\n", i, lista[i].peso, lista[i].valor, lista[i].razao);
+
+
+
+///////////////// Abordagens /////////////////
+void forca_bruta_recursiva(Item* itens, int n, int w,
+                           long long valAtual, int pesoAtual, int i,
+                           long long* maxVal, long long comb, long long* bestComb)
+{
+    // --- Caso base: todos os itens foram processados ---
+    if (i == n) {
+        if (pesoAtual <= w && valAtual > *maxVal) {
+            *maxVal = valAtual;
+            *bestComb = comb;
+        }
+        return;
     }
-    printf("Peso total dos itens: %d\n", pesoTotal);
+
+    // --- Ignora o item atual ---
+    forca_bruta_recursiva(itens, n, w, valAtual, pesoAtual, i + 1, maxVal, comb, bestComb);
+
+    // --- Inclui o item atual ---
+    double novoPeso = pesoAtual + itens[i].peso;
+    double novoValor = valAtual + itens[i].valor;
+
+    // Só explora se ainda há chance de ser válido (Árvore com "poda", já que não explora toda a árvore)
+    if (novoPeso <= w) {
+        forca_bruta_recursiva(itens, n, w, novoValor, novoPeso, i + 1, maxVal, comb | (1LL << i), bestComb);
+    }
 }
+
+void forca_bruta(Item *itens, int n, int w){
+    clock_t inicio = clock();
+    if (n >= 64) {
+    printf("Erro: O número de itens deve ser menor que 64 para a solução de força bruta.\n");
+    return;
+    }
+    // --- 2. Algoritmo de Força Bruta ---
+    printf("\n--- Executando Solução Força Bruta ---\n");
+    if (n > 30) {
+        printf("(Aviso: n > 30, isso pode levar muito tempo...)\n");
+    }
+
+    long long maxVal = 0;
+    long long bestComb = 0LL;
+
+    forca_bruta_recursiva(itens, n, (double)w, 0, 0, 0, &maxVal, 0LL, &bestComb);
+
+    printf("Itens na melhor combinação:\n");
+
+    int pesoFinal = 0;
+    long long valorFinal = 0;
+
+    if (bestComb == 0 && maxVal == 0) {
+        printf("  - Nenhum item foi selecionado.\n");
+    } else {
+    for (int i = 0; i < n; i++) {
+        if ((bestComb >> i) & 1) {
+            printf("Adicionado Item %d (Peso: %d, Valor: %d)\n", itens[i].id, itens[i].peso, itens[i].valor);
+                pesoFinal += itens[i].peso;
+                valorFinal += itens[i].valor;
+            }
+         }
+    }
+    clock_t fim = clock();
+    double tempo_ms = ((double)(fim - inicio) / CLOCKS_PER_SEC) * 1000.0;
+    printf("Tempo necessário: %lf\n", tempo_ms);
+        printf("\nResultado Força Bruta -> Valor Final: %lld | Peso Final: %d\n", valorFinal, pesoFinal);
+}
+
+// --- Função de comparação para qsort ---
+// --- Ordena os itens em ordem decrescente com base na sua razão (valor/peso) ---
+int compareItens(const void *a, const void *b) {
+    // Converte os ponteiros void* para ponteiros do tipo Item*
+    Item *itemA = (Item *)a;
+    Item *itemB = (Item *)b;
+
+    // Compara as razões para ordenação decrescente
+    if (itemA->razao < itemB->razao) return 1;
+    if (itemA->razao > itemB->razao) return -1;
+    return 0; // São iguais
+}
+
+void guloso(Item* itens, int n, int w){
+    qsort(itens, n, sizeof(Item), compareItens);
+  
+    Mochila mochilaGuloso = { .max_w = w, .valor_total = 0, .peso_total = 0 };
+
+    printf("\n--- Executando Solução Gulosa ---\n");
+
+    // Itera sobre os itens já ordenados e preenche a mochila
+    for (int i = 0; i < n; i++) {
+        if (mochilaGuloso.peso_total + itens[i].peso <= mochilaGuloso.max_w) {
+            mochilaGuloso.peso_total += itens[i].peso;
+            mochilaGuloso.valor_total += itens[i].valor;
+            
+            // imprime o item que foi adicionado
+            printf("Adicionado item %d (Peso: %d, Valor: %d, Razão: %.2f)\n", itens[i].id, itens[i].peso, itens[i].valor, itens[i].razao);
+        }
+    }
+
+    // Imprime o resultado final
+    printf("\nResultado Guloso -> Valor Final: %lld | Peso Final: %d\n", mochilaGuloso.valor_total, mochilaGuloso.peso_total);
+}
+
+//Função Auxiliar
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+// Programação Dinâmica
+void prog_dinamica(Item *itens, int n, int w) {
+    if (itens == NULL || n <= 0 || w <= 0) {
+        printf("Entrada inválida.\n");
+        return;
+    }
+
+    //Aloca espaco para a tabela
+    int **tabela = (int **) calloc(n + 1, sizeof(int *));
+    if (tabela == NULL) {
+        printf("Erro de alocação\n");
+        return;
+    }
+    for (int i = 0; i <= n; i++) {
+        tabela[i] = (int *) calloc(w + 1, sizeof(int));
+        if (tabela[i] == NULL) {
+            printf("Erro de alocação\n");
+            for(int k=0; k < i; k++) free(tabela[k]);
+            free(tabela);
+            return;
+        }
+    }
+
+    //Preenche as células da tabela
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= w; j++) {
+            int pesoAtual = itens[i-1].peso;
+            int valorAtual = itens[i-1].valor;
+            int valorAnterior = tabela[i-1][j];
+
+            //Se o item não cabe
+            if (pesoAtual > j) {
+                tabela[i][j] = valorAnterior;
+            } else {
+                //O novo valor é a soma do item atual com a melhor possibilidade de resto
+                int novoValor = valorAtual + tabela[i-1][j - pesoAtual];
+                tabela[i][j] = max(valorAnterior, novoValor); //Escolhe o maior
+            }
+        }
+    }
+
+    //Exibe os itens guardados e os dados finais
+    int melhor = tabela[n][w];
+    int peso_final = 0;
+    int espacoVago = w;
+    int qtdItens = 0;
+    printf("Itens selecionados pela Programação Dinâmica:\n");
+    for (int i = n; i > 0 && espacoVago > 0; i--) {
+        if (tabela[i][espacoVago] != tabela[i-1][espacoVago]) {
+            Item itemAtual = itens[i-1];
+            printf("- Item %d (Peso: %d, Valor: %d)\n", itemAtual.id, itemAtual.peso, itemAtual.valor);
+            espacoVago -= itemAtual.peso;
+            peso_final += itemAtual.peso;
+            qtdItens++;
+        }
+    }
+    
+    printf("\nValor final: %d\n", melhor);
+    printf("Peso final: %d\n", peso_final);
+    printf("Itens inseridos: %d\n", qtdItens);
+
+    for (int i = 0; i <= n; i++) {
+        free(tabela[i]);
+    }
+    free(tabela);
+}
+
+
+
+int main(){ 
+    int a; // Seletor de algoritmo
+    int s; // Seleciona entrada de itens
+    int t; // Tipo de correlação
+    int n; // Número de itens
+    int w; // Peso máximo da mochila
+    printf("Insira o número de itens: ");
+    scanf("%d", &n);
+
+    printf("Insira o peso máximo da mochila: ");
+    scanf("%d", &w);
+
+    Mochila *mochila = (Mochila *) malloc(sizeof(Mochila));
+    Item *lista = NULL;
+    mochila->max_w = w;
+    mochila->itens_guardados = lista;
+    printf("Selecione o algorítmo: \n");
+    printf("1. Força Bruta \n");
+    printf("2. Guloso\n");
+    printf("3. Programação Dinâmica\n");
+    scanf("%d", &a);
+
+    Item itens[n];
+    srand(time(NULL)); //Para a geração de itens aleatórios
+
+    printf("Adicionar itens ou gerar aleatórios?\n");
+    printf("1. Adicionar itens manualmente\n");
+    printf("2. Gerar itens aleatórios\n");
+    scanf("%d", &s);
+
+    if (s == 1){
+        lerItens(itens, n);
+    }else if (s == 2){
+
+        printf("\nSelecione o tipo de geração de itens:\n");
+        printf("1. Pesos e Valores Não Correlacionados\n");
+        printf("2. Pesos e Valores Correlacionados com Ruído\n");
+        printf("3. Pesos e Valores Fortemente Correlacionados\n");
+        scanf("%d", &t);
+
+        // Chama a função de criação apropriada com base na escolha do usuário
+        switch (t) {
+            case 1:
+                criarItens_NaoCorrelacionado(itens, n, w);
+                break;
+            case 2:
+                criarItens_CorrelacionadoComRuido(itens, n, w);
+                break;
+            case 3:
+                criarItens_FortementeCorrelacionado(itens, n, w);
+                break;
+        }
+        imprimirItens(itens, n);
+    }
+
+
+    if(a == 1){
+        forca_bruta(itens, n, w);
+    }else if(a == 2){
+        guloso(itens, n, w); 
+    }
+    else{
+        prog_dinamica(itens, n, w); 
+    }
+
+    return 0;
+}
+
